@@ -3,8 +3,8 @@ package shared
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/d2checkpoint-com/BungieNet/internal/rest"
-	"github.com/d2checkpoint-com/BungieNet/pkg/Models"
+	"github.com/d2checkpoint-com/bungienet/internal/rest"
+	"github.com/d2checkpoint-com/bungienet/pkg/Models"
 	"strings"
 	"time"
 )

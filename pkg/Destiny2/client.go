@@ -2,9 +2,9 @@ package Destiny2
 
 import (
 	"fmt"
-	"github.com/d2checkpoint-com/BungieNet/internal/rest"
-	"github.com/d2checkpoint-com/BungieNet/internal/shared"
-	"github.com/d2checkpoint-com/BungieNet/pkg/Models"
+	"github.com/d2checkpoint-com/bungienet/internal/rest"
+	"github.com/d2checkpoint-com/bungienet/internal/shared"
+	"github.com/d2checkpoint-com/bungienet/pkg/Models"
 )
 
 const (

@@ -1,11 +1,11 @@
 package bungienet
 
 import (
-	"github.com/d2checkpoint-com/BungieNet/internal/rest"
-	"github.com/d2checkpoint-com/BungieNet/internal/shared"
-	"github.com/d2checkpoint-com/BungieNet/pkg/Destiny2"
-	"github.com/d2checkpoint-com/BungieNet/pkg/Models"
-	"github.com/d2checkpoint-com/BungieNet/pkg/User"
+	"github.com/d2checkpoint-com/bungienet/internal/rest"
+	"github.com/d2checkpoint-com/bungienet/internal/shared"
+	"github.com/d2checkpoint-com/bungienet/pkg/Destiny2"
+	"github.com/d2checkpoint-com/bungienet/pkg/Models"
+	"github.com/d2checkpoint-com/bungienet/pkg/User"
 )
 
 const (
