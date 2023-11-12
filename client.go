@@ -36,11 +36,6 @@ func (c *Client) GetGlobalAlerts(includeStreaming ...bool) (*Models.Response, er
 	url := bungieUrl + "/GlobalAlerts/"
 	if len(includeStreaming) > 0 && includeStreaming[0] {
 		url += "?includeStreaming=true"
-		if c.CacheBreaker {
-			url += "&t=%d"
-		} else if c.CacheBreaker {
-			url += "?t=%d"
-		}
 	}
 
 	// Send and return request
