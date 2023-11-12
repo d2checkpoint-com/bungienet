@@ -20,6 +20,7 @@ type Client struct {
 	User         *User.Client
 }
 
+// NewClient creates a new client with the specified options.
 func NewClient(options ...any) *Client {
 	return &Client{
 		ApiKey:       options[0].(string),
@@ -42,23 +43,15 @@ func (c *Client) GetGlobalAlerts(includeStreaming ...bool) (*Models.Response, er
 		}
 	}
 
-	// Build request
-	request := rest.Request{
+	// Send and return request
+	return shared.SendRequest(rest.Request{
 		Method:  rest.Get,
-		BaseURL: url,
+		BaseURL: shared.SetCacheBreakUrl(url, c.CacheBreaker),
 		Headers: map[string]string{
 			"X-API-Key":  c.ApiKey,
 			"User-Agent": c.UserAgent,
 		},
-	}
-
-	// Send request
-	response, err := rest.Send(request)
-	if err != nil {
-		return nil, err
-	}
-
-	return shared.UnmarshalResponse(response)
+	})
 }
 
 func (c *Client) GetCommonSettings() (*Models.Response, error) {
