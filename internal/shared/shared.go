@@ -53,10 +53,17 @@ func SendRequest(request rest.Request) (*Models.Response, error) {
 }
 
 func UnmarshalResponse(response *rest.Response) (*Models.Response, error) {
-	var ret *Models.Response
-	err := json.Unmarshal([]byte(response.Body), &ret)
+	var r *Models.Response
+	err := json.Unmarshal([]byte(response.Body), &r)
 	if err != nil {
 		return nil, err
 	}
-	return ret, nil
+	return CheckResponse(r)
+}
+
+func CheckResponse(r *Models.Response) (*Models.Response, error) {
+	if r.ErrorCode != 1 {
+		return r, fmt.Errorf("%s: %s", r.ErrorStatus, r.Message)
+	}
+	return r, nil
 }
