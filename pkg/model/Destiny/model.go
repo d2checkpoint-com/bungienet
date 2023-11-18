@@ -24,3 +24,8 @@ type DestinyItemQuantity struct {
 	Quantity                 int32  `json:"quantity"`
 	HasConditionalVisibility bool   `json:"hasConditionalVisibility"`
 }
+
+type DyeReference struct {
+	ChannelHash uint32 `json:"channelHash"`
+	DyeHash     uint32 `json:"dyeHash"`
+}
