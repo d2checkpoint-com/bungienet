@@ -6,20 +6,26 @@ import (
 	"time"
 )
 
-type SingleComponentResponseOfDestinyVendorReceiptsComponent any                   //TODO
-type SingleComponentResponseOfDestinyInventoryComponent any                        //TODO
-type SingleComponentResponseOfDestinyProfileComponent any                          //TODO
-type SingleComponentResponseOfDestinyPlatformSilverComponent any                   //TODO
-type SingleComponentResponseOfDestinyKiosksComponent any                           //TODO
-type SingleComponentResponseOfDestinyPlugSetsComponent any                         //TODO
-type SingleComponentResponseOfDestinyProfileProgressionComponent any               //TODO
-type SingleComponentResponseOfDestinyPresentationNodesComponent any                //TODO
-type SingleComponentResponseOfDestinyProfileRecordsComponent any                   //TODO
-type SingleComponentResponseOfDestinyProfileCollectiblesComponent any              //TODO
-type SingleComponentResponseOfDestinyMetricsComponent any                          //TODO
-type SingleComponentResponseOfDestinyStringVariablesComponent any                  //TODO
-type SingleComponentResponseOfDestinySocialCommendationsComponent any              //TODO
-type DictionaryComponentResponseOfint64AndDestinyCharacterComponent any            //TODO
+type SingleComponentResponseOfDestinyVendorReceiptsComponent any      //TODO
+type SingleComponentResponseOfDestinyInventoryComponent any           //TODO
+type SingleComponentResponseOfDestinyProfileComponent any             //TODO
+type SingleComponentResponseOfDestinyPlatformSilverComponent any      //TODO
+type SingleComponentResponseOfDestinyKiosksComponent any              //TODO
+type SingleComponentResponseOfDestinyPlugSetsComponent any            //TODO
+type SingleComponentResponseOfDestinyProfileProgressionComponent any  //TODO
+type SingleComponentResponseOfDestinyPresentationNodesComponent any   //TODO
+type SingleComponentResponseOfDestinyProfileRecordsComponent any      //TODO
+type SingleComponentResponseOfDestinyProfileCollectiblesComponent any //TODO
+type SingleComponentResponseOfDestinyMetricsComponent any             //TODO
+type SingleComponentResponseOfDestinyStringVariablesComponent any     //TODO
+type SingleComponentResponseOfDestinySocialCommendationsComponent any //TODO
+
+type DictionaryComponentResponseOfint64AndDestinyCharacterComponent struct {
+	Data     map[int64]*Characters.DestinyCharacterComponent `json:"data"`
+	Privacy  int32                                           `json:"privacy"`
+	Disabled bool                                            `json:"disabled"`
+}
+
 type DictionaryComponentResponseOfint64AndDestinyInventoryComponent any            //TODO
 type DictionaryComponentResponseOfint64AndDestinyLoadoutsComponent any             //TODO
 type DictionaryComponentResponseOfint64AndDestinyCharacterProgressionComponent any //TODO

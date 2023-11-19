@@ -9,7 +9,7 @@ type GroupUserInfoCard struct {
 	ApplicableMembershipTypes   []int32 `json:"applicableMembershipTypes"`
 	IsPublic                    bool    `json:"isPublic"`
 	MembershipType              int32   `json:"membershipType"`
-	MembershipId                int64   `json:"membershipId"`
+	MembershipId                int64   `json:"membershipId,string"`
 	DisplayName                 string  `json:"displayName"`
 	BungieGlobalDisplayName     string  `json:"bungieGlobalDisplayName"`
 	BungieGlobalDisplayNameCode int16   `json:"bungieGlobalDisplayNameCode"`
