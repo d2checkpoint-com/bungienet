@@ -31,12 +31,12 @@ func (c *Client) GetMembershipDataById(membershipId int64, membershipType int32,
 	for _, option := range options {
 		switch option.(type) {
 		case model.CacheBreak:
-			q["t"] = time.Now().String()
+			q["t"] = fmt.Sprintf("%d", time.Now().Unix())
 		}
 	}
 	h, err := rest.Send(rest.Request{
 		Method:      rest.Get,
-		BaseURL:     fmt.Sprintf("%s/User/GetMembershipsById/%s/%s/", bungieUrl, membershipId, membershipType),
+		BaseURL:     fmt.Sprintf("%s/User/GetMembershipsById/%d/%d/", bungieUrl, membershipId, membershipType),
 		QueryParams: q,
 		Headers: map[string]string{
 			"X-API-Key":  c.ApiKey,
