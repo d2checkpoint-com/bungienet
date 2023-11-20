@@ -23,8 +23,8 @@ type DestinyCharacterComponent struct {
 	MembershipType           int32                       `json:"membershipType"`
 	CharacterId              int64                       `json:"characterId,string"`
 	DateLastPlayed           time.Time                   `json:"dateLastPlayed"`
-	MinutesPlayedThisSession int64                       `json:"minutesPlayedThisSession"`
-	MinutesPlayedTotal       int64                       `json:"minutesPlayedTotal"`
+	MinutesPlayedThisSession int64                       `json:"minutesPlayedThisSession,string"`
+	MinutesPlayedTotal       int64                       `json:"minutesPlayedTotal,string"`
 	Light                    int32                       `json:"light"`
 	Stats                    map[uint32]int32            `json:"stats"`
 	RaceHash                 uint32                      `json:"raceHash"`
@@ -40,5 +40,5 @@ type DestinyCharacterComponent struct {
 	LevelProgression         *Destiny.DestinyProgression `json:"levelProgression"`
 	BaseCharacterLevel       int32                       `json:"baseCharacterLevel"`
 	PercentToNextLevel       float64                     `json:"percentToNextLevel"`
-	TitleRecordHash          int32                       `json:"titleRecordHash"`
+	TitleRecordHash          uint32                      `json:"titleRecordHash"`
 }
