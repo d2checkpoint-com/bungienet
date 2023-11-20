@@ -1,8 +1,8 @@
 package bungienet
 
 import (
-	"encoding/json"
 	"fmt"
+	"github.com/bytedance/sonic"
 	"github.com/d2checkpoint-com/bungienet/internal/shared"
 	"github.com/d2checkpoint-com/bungienet/pkg/client/Destiny2"
 	"github.com/d2checkpoint-com/bungienet/pkg/client/User"
@@ -63,7 +63,7 @@ func (c *Client) GetGlobalAlerts(includeStreaming ...any) (*GetGlobalAlertsRespo
 	}
 
 	var r *GetGlobalAlertsResponse
-	err = json.Unmarshal([]byte(h.Body), &r)
+	err = sonic.Unmarshal([]byte(h.Body), &r)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +105,7 @@ func (c *Client) GetCommonSettings(options ...any) (*GetCommonSettingsResponse, 
 	}
 
 	var r *GetCommonSettingsResponse
-	err = json.Unmarshal([]byte(h.Body), &r)
+	err = sonic.Unmarshal([]byte(h.Body), &r)
 	if err != nil {
 		return nil, err
 	}

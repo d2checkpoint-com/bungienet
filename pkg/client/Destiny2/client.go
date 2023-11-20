@@ -1,8 +1,8 @@
 package Destiny2
 
 import (
-	"encoding/json"
 	"fmt"
+	"github.com/bytedance/sonic"
 	"github.com/d2checkpoint-com/bungienet/internal/shared"
 	"github.com/d2checkpoint-com/bungienet/pkg/model"
 	"github.com/d2checkpoint-com/bungienet/pkg/model/Destiny/Config"
@@ -51,7 +51,7 @@ func (c *Client) GetDestinyManifest(options ...any) (*GetDestinyManifestResponse
 	}
 
 	var r *GetDestinyManifestResponse
-	err = json.Unmarshal([]byte(h.Body), &r)
+	err = sonic.Unmarshal([]byte(h.Body), &r)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func (c *Client) GetProfile(membershipId int64, membershipType int32, components
 	}
 
 	var r *GetProfileResponse
-	err = json.Unmarshal([]byte(h.Body), &r)
+	err = sonic.Unmarshal([]byte(h.Body), &r)
 	if err != nil {
 		return nil, err
 	}
@@ -155,7 +155,7 @@ func (c *Client) GetCharacter(membershipType int32, membershipId, characterId in
 	}
 
 	var r *GetCharacterResponse
-	err = json.Unmarshal([]byte(h.Body), &r)
+	err = sonic.Unmarshal([]byte(h.Body), &r)
 	if err != nil {
 		return nil, err
 	}

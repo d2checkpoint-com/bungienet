@@ -1,8 +1,8 @@
 package User
 
 import (
-	"encoding/json"
 	"fmt"
+	"github.com/bytedance/sonic"
 	"github.com/d2checkpoint-com/bungienet/internal/shared"
 	"github.com/d2checkpoint-com/bungienet/pkg/model"
 	"github.com/d2checkpoint-com/bungienet/pkg/model/User"
@@ -48,7 +48,7 @@ func (c *Client) GetMembershipDataById(membershipId int64, membershipType int32,
 	}
 
 	var r *GetMembershipDataByIdResponse
-	err = json.Unmarshal([]byte(h.Body), &r)
+	err = sonic.Unmarshal([]byte(h.Body), &r)
 	if err != nil {
 		return nil, err
 	}
