@@ -15,7 +15,7 @@ type RateLimiter struct {
 
 func newRateLimiter() *RateLimiter {
 	return &RateLimiter{
-		Limiter:         rate.NewLimiter(25, 25),
+		Limiter:         rate.NewLimiter(20, 20),
 		StatsLimiter:    rate.NewLimiter(60, 60),
 		ThrottleSeconds: &ThrottleSeconds{},
 	}
