@@ -1,67 +1,50 @@
 package User
 
 import (
+	"errors"
 	"fmt"
 	"github.com/bytedance/sonic"
-	"github.com/d2checkpoint-com/bungienet/internal/shared"
-	"github.com/d2checkpoint-com/bungienet/pkg/model"
-	"github.com/d2checkpoint-com/bungienet/pkg/model/User"
-	"github.com/sendgrid/rest"
-	"time"
+	"github.com/d2checkpoint-com/bungienet/pkg/client"
+	modelUser "github.com/d2checkpoint-com/bungienet/pkg/model/User"
 )
 
 const (
 	bungieUrl = "https://www.bungie.net/Platform"
 )
 
-type Client struct {
-	ApiKey    string
-	UserAgent string
+type User struct {
+	client *client.Client
 }
 
-func NewClient(options ...any) *Client {
-	return &Client{
-		ApiKey:    options[0].(string),
-		UserAgent: shared.SetUserAgent(options),
-	}
+func NewClient() *User {
+	return &User{&client.BungieClient}
 }
 
-func (c *Client) GetMembershipDataById(membershipId int64, membershipType int32, options ...any) (*GetMembershipDataByIdResponse, error) {
-	q := make(map[string]string)
+func (c *User) GetMembershipDataById(membershipId int64, membershipType int32, options ...any) (*GetMembershipDataByIdResponse, error) {
+	var cacheBreak client.CacheBreak
 	for _, option := range options {
 		switch option.(type) {
-		case model.CacheBreak:
-			q["t"] = fmt.Sprintf("%d", time.Now().Unix())
+		case client.CacheBreak:
+			cacheBreak = option.(client.CacheBreak)
 		}
 	}
-	h, err := rest.Send(rest.Request{
-		Method:      rest.Get,
-		BaseURL:     fmt.Sprintf("%s/User/GetMembershipsById/%d/%d/", bungieUrl, membershipId, membershipType),
-		QueryParams: q,
-		Headers: map[string]string{
-			"X-API-Key":  c.ApiKey,
-			"User-Agent": c.UserAgent,
-		},
+
+	res, err := c.client.Send(client.Request{
+		Method:     client.Get,
+		BaseURL:    fmt.Sprintf("%s/User/GetMembershipsById/%d/%d/", bungieUrl, membershipId, membershipType),
+		CacheBreak: cacheBreak,
 	})
-	if err != nil {
-		return nil, err
-	}
 
 	var r *GetMembershipDataByIdResponse
-	err = sonic.Unmarshal([]byte(h.Body), &r)
-	if err != nil {
-		return nil, err
-	}
-
-	return r, shared.CheckResponse(r.ErrorCode, r.ErrorStatus, r.Message)
+	return r, errors.Join(err, sonic.Unmarshal(res, &r))
 }
 
 type GetMembershipDataByIdResponse struct {
-	Response           *User.UserMembershipData `json:"Response"`
-	ErrorCode          int32                    `json:"ErrorCode"`
-	ThrottleSeconds    int32                    `json:"ThrottleSeconds"`
-	ErrorStatus        string                   `json:"ErrorStatus"`
-	Message            string                   `json:"Message"`
-	MessageData        map[string]string        `json:"MessageData"`
-	DetailedErrorTrace string                   `json:"DetailedErrorTrace"`
+	Response           *modelUser.UserMembershipData `json:"Response"`
+	ErrorCode          int32                         `json:"ErrorCode"`
+	ThrottleSeconds    int32                         `json:"ThrottleSeconds"`
+	ErrorStatus        string                        `json:"ErrorStatus"`
+	Message            string                        `json:"Message"`
+	MessageData        map[string]string             `json:"MessageData"`
+	DetailedErrorTrace string                        `json:"DetailedErrorTrace"`
 }

@@ -1,62 +1,46 @@
 package Destiny2
 
 import (
+	"errors"
 	"fmt"
 	"github.com/bytedance/sonic"
-	"github.com/d2checkpoint-com/bungienet/internal/shared"
-	"github.com/d2checkpoint-com/bungienet/pkg/model"
+	"github.com/d2checkpoint-com/bungienet/pkg/client"
 	"github.com/d2checkpoint-com/bungienet/pkg/model/Destiny/Config"
 	"github.com/d2checkpoint-com/bungienet/pkg/model/Destiny/Responses"
-	"github.com/sendgrid/rest"
-	"time"
+	"net/url"
 )
 
 const (
 	bungieUrl = "https://www.bungie.net/Platform"
+	statsUrl  = "https://stats.bungie.net/Platform"
 )
 
-type Client struct {
-	ApiKey    string
-	UserAgent string
+type Destiny2 struct {
+	client *client.Client
 }
 
-func NewClient(options ...any) *Client {
-	return &Client{
-		ApiKey:    options[0].(string),
-		UserAgent: shared.SetUserAgent(options),
-	}
+func NewClient() *Destiny2 {
+	return &Destiny2{&client.BungieClient}
 }
 
-func (c *Client) GetDestinyManifest(options ...any) (*GetDestinyManifestResponse, error) {
-	q := make(map[string]string)
+func (c *Destiny2) GetDestinyManifest(options ...any) (*GetDestinyManifestResponse, error) {
+	var cacheBreak client.CacheBreak
 	for _, option := range options {
 		switch option.(type) {
-		case model.CacheBreak:
-			q["t"] = fmt.Sprintf("%d", time.Now().Unix())
+		case client.CacheBreak:
+			cacheBreak = option.(client.CacheBreak)
 		}
 	}
 
 	// Send and return request
-	h, err := rest.Send(rest.Request{
-		Method:      rest.Get,
-		BaseURL:     bungieUrl + "/Destiny2/Manifest/",
-		QueryParams: q,
-		Headers: map[string]string{
-			"X-API-Key":  c.ApiKey,
-			"User-Agent": c.UserAgent,
-		},
+	res, err := c.client.Send(client.Request{
+		Method:     client.Get,
+		BaseURL:    bungieUrl + "/Destiny2/Manifest/",
+		CacheBreak: cacheBreak,
 	})
-	if err != nil {
-		return nil, err
-	}
 
 	var r *GetDestinyManifestResponse
-	err = sonic.Unmarshal([]byte(h.Body), &r)
-	if err != nil {
-		return nil, err
-	}
-
-	return r, shared.CheckResponse(r.ErrorCode, r.ErrorStatus, r.Message)
+	return r, errors.Join(err, sonic.Unmarshal(res, &r))
 }
 
 type GetDestinyManifestResponse struct {
@@ -69,46 +53,40 @@ type GetDestinyManifestResponse struct {
 	DetailedErrorTrace string                  `json:"DetailedErrorTrace"`
 }
 
-func (c *Client) GetProfile(membershipId int64, membershipType int32, components ...any) (*GetProfileResponse, error) {
-	// Ensure at least one component is specified
+func (c *Destiny2) GetProfile(membershipId int64, membershipType int32, components ...any) (*GetProfileResponse, error) {
 	if len(components) == 0 {
 		return nil, fmt.Errorf("no components specified")
 	}
 
-	q := make(map[string]string)
+	var q url.Values
+	var cacheBreak client.CacheBreak
 	for _, component := range components {
 		switch component.(type) {
 		case DestinyComponentType:
-			q["components"] += fmt.Sprintf("%d,", component)
-		case model.CacheBreak:
-			q["t"] = fmt.Sprintf("%d", time.Now().Unix())
-		default:
-			return nil, fmt.Errorf("invalid component type")
+			if q == nil {
+				q = url.Values{}
+			}
+			q.Add("components", fmt.Sprintf("%d,", component))
+		case int32:
+			if q == nil {
+				q = url.Values{}
+			}
+			q.Add("components", fmt.Sprintf("%d,", component))
+		case client.CacheBreak:
+			cacheBreak = component.(client.CacheBreak)
 		}
 	}
-	q["components"] = q["components"][:len(q["components"])-1]
 
 	// Send and return request
-	h, err := rest.Send(rest.Request{
-		Method:      rest.Get,
+	res, err := c.client.Send(client.Request{
+		Method:      client.Get,
 		BaseURL:     fmt.Sprintf("%s/Destiny2/%d/Profile/%d/", bungieUrl, membershipType, membershipId),
 		QueryParams: q,
-		Headers: map[string]string{
-			"X-API-Key":  c.ApiKey,
-			"User-Agent": c.UserAgent,
-		},
+		CacheBreak:  cacheBreak,
 	})
-	if err != nil {
-		return nil, err
-	}
 
 	var r *GetProfileResponse
-	err = sonic.Unmarshal([]byte(h.Body), &r)
-	if err != nil {
-		return nil, err
-	}
-
-	return r, shared.CheckResponse(r.ErrorCode, r.ErrorStatus, r.Message)
+	return r, errors.Join(err, sonic.Unmarshal(res, &r))
 }
 
 type GetProfileResponse struct {
@@ -121,46 +99,40 @@ type GetProfileResponse struct {
 	DetailedErrorTrace string                            `json:"DetailedErrorTrace"`
 }
 
-func (c *Client) GetCharacter(membershipType int32, membershipId, characterId int64, components ...any) (*GetCharacterResponse, error) {
+func (c *Destiny2) GetCharacter(membershipType int32, membershipId, characterId int64, components ...any) (*GetCharacterResponse, error) {
 	// Ensure at least one component is specified
 	if len(components) == 0 {
 		return nil, fmt.Errorf("no components specified")
 	}
 
-	q := make(map[string]string)
+	var q url.Values
+	var cacheBreak client.CacheBreak
 	for _, component := range components {
 		switch component.(type) {
 		case DestinyComponentType:
-			q["components"] += fmt.Sprintf("%d,", component)
-		case model.CacheBreak:
-			q["t"] = fmt.Sprintf("%d", time.Now().Unix())
-		default:
-			return nil, fmt.Errorf("invalid component type")
+			if q == nil {
+				q = url.Values{}
+			}
+			q.Add("components", fmt.Sprintf("%d,", component))
+		case int32:
+			if q == nil {
+				q = url.Values{}
+			}
+			q.Add("components", fmt.Sprintf("%d,", component))
+		case client.CacheBreak:
+			cacheBreak = component.(client.CacheBreak)
 		}
 	}
-	q["components"] = q["components"][:len(q["components"])-1]
 
-	// Send and return request
-	h, err := rest.Send(rest.Request{
-		Method:      rest.Get,
+	res, err := c.client.Send(client.Request{
+		Method:      client.Get,
 		BaseURL:     fmt.Sprintf("%s/Destiny2/%d/Profile/%d/Character/%d/", bungieUrl, membershipType, membershipId, characterId),
 		QueryParams: q,
-		Headers: map[string]string{
-			"X-API-Key":  c.ApiKey,
-			"User-Agent": c.UserAgent,
-		},
+		CacheBreak:  cacheBreak,
 	})
-	if err != nil {
-		return nil, err
-	}
 
 	var r *GetCharacterResponse
-	err = sonic.Unmarshal([]byte(h.Body), &r)
-	if err != nil {
-		return nil, err
-	}
-
-	return r, shared.CheckResponse(r.ErrorCode, r.ErrorStatus, r.Message)
+	return r, errors.Join(err, sonic.Unmarshal(res, &r))
 }
 
 type GetCharacterResponse struct {

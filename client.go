@@ -1,36 +1,47 @@
 package bungienet
 
 import (
+	"errors"
 	"fmt"
 	"github.com/bytedance/sonic"
-	"github.com/d2checkpoint-com/bungienet/internal/shared"
+	"github.com/d2checkpoint-com/bungienet/pkg/client"
 	"github.com/d2checkpoint-com/bungienet/pkg/client/Destiny2"
 	"github.com/d2checkpoint-com/bungienet/pkg/client/User"
 	"github.com/d2checkpoint-com/bungienet/pkg/model"
 	"github.com/d2checkpoint-com/bungienet/pkg/model/Common/Models"
-	"github.com/sendgrid/rest"
-	"time"
+	"net/url"
 )
 
 const (
-	bungieUrl = "https://www.bungie.net/Platform"
+	bungieUrl  = "https://www.bungie.net/Platform"
+	BreakCache = client.BreakCache
 )
 
+type ApiKey = client.ApiKey
+type UserAgent = client.UserAgent
+
 type Client struct {
-	ApiKey    string
-	UserAgent string
-	Destiny2  *Destiny2.Client
-	User      *User.Client
+	*Destiny2.Destiny2
+	*User.User
+	client *client.Client
 }
 
 // NewClient creates a new client with the specified options.
-func NewClient(options ...any) *Client {
-	return &Client{
-		ApiKey:    options[0].(string),
-		UserAgent: shared.SetUserAgent(options),
-		Destiny2:  Destiny2.NewClient(options...),
-		User:      User.NewClient(options...),
+func NewClient(apiKey string, options ...any) *Client {
+	for _, option := range options {
+		switch option.(type) {
+		case client.ApiKey:
+			apiKey = option.(client.ApiKey).String()
+		}
 	}
+
+	if apiKey == "" {
+		panic("missing api key")
+	}
+
+	client.NewClient(client.ApiKey(apiKey), options)
+
+	return &Client{Destiny2.NewClient(), User.NewClient(), &client.BungieClient}
 }
 
 type StreamingAlerts bool
@@ -38,37 +49,29 @@ type StreamingAlerts bool
 const IncludeStreaming StreamingAlerts = true
 
 func (c *Client) GetGlobalAlerts(includeStreaming ...any) (*GetGlobalAlertsResponse, error) {
-	q := make(map[string]string)
+	var q url.Values
+	var cacheBreak client.CacheBreak
 	for _, option := range includeStreaming {
 		switch option.(type) {
-		case model.CacheBreak:
-			q["t"] = time.Now().String()
+		case client.CacheBreak:
+			cacheBreak = option.(client.CacheBreak)
 		case StreamingAlerts:
-			q["includestreaming"] = "true"
+			if q == nil {
+				q = url.Values{}
+			}
+			q.Add("includestreaming", fmt.Sprintf("%t,", includeStreaming))
 		}
 	}
 
-	// Send and return request
-	h, err := rest.Send(rest.Request{
-		Method:      rest.Get,
+	res, err := c.client.Send(client.Request{
+		Method:      client.Get,
 		BaseURL:     fmt.Sprintf("%s/GlobalAlerts/", bungieUrl),
 		QueryParams: q,
-		Headers: map[string]string{
-			"X-API-Key":  c.ApiKey,
-			"User-Agent": c.UserAgent,
-		},
+		CacheBreak:  cacheBreak,
 	})
-	if err != nil {
-		return nil, err
-	}
 
 	var r *GetGlobalAlertsResponse
-	err = sonic.Unmarshal([]byte(h.Body), &r)
-	if err != nil {
-		return nil, err
-	}
-
-	return r, shared.CheckResponse(r.ErrorCode, r.ErrorStatus, r.Message)
+	return r, errors.Join(err, sonic.Unmarshal(res, &r))
 }
 
 type GetGlobalAlertsResponse struct {
@@ -82,35 +85,22 @@ type GetGlobalAlertsResponse struct {
 }
 
 func (c *Client) GetCommonSettings(options ...any) (*GetCommonSettingsResponse, error) {
-	q := make(map[string]string)
+	var cacheBreak client.CacheBreak
 	for _, option := range options {
 		switch option.(type) {
-		case model.CacheBreak:
-			q["t"] = time.Now().String()
+		case client.CacheBreak:
+			cacheBreak = option.(client.CacheBreak)
 		}
 	}
 
-	// Send and return request
-	h, err := rest.Send(rest.Request{
-		Method:      rest.Get,
-		BaseURL:     fmt.Sprintf("%s/Settings/", bungieUrl),
-		QueryParams: q,
-		Headers: map[string]string{
-			"X-API-Key":  c.ApiKey,
-			"User-Agent": c.UserAgent,
-		},
+	res, err := c.client.Send(client.Request{
+		Method:     client.Get,
+		BaseURL:    fmt.Sprintf("%s/Settings/", bungieUrl),
+		CacheBreak: cacheBreak,
 	})
-	if err != nil {
-		return nil, err
-	}
 
 	var r *GetCommonSettingsResponse
-	err = sonic.Unmarshal([]byte(h.Body), &r)
-	if err != nil {
-		return nil, err
-	}
-
-	return r, shared.CheckResponse(r.ErrorCode, r.ErrorStatus, r.Message)
+	return r, errors.Join(err, sonic.Unmarshal(res, &r))
 }
 
 type GetCommonSettingsResponse struct {

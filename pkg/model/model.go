@@ -2,10 +2,6 @@ package model
 
 import "time"
 
-type CacheBreak bool
-
-const BreakCache CacheBreak = true
-
 type GlobalAlert struct {
 	AlertKey       string      `json:"AlertKey"`
 	AlertHtml      string      `json:"AlertHtml"`
