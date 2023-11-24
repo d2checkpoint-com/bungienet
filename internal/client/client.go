@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/cookiejar"
+	"time"
 )
-
-var BungieClient Client
 
 // Client allows modification of client headers, redirect policy and other settings
 type Client struct {
@@ -18,7 +17,7 @@ type Client struct {
 }
 
 // NewClient initializes the BungieClient variable.
-func NewClient(options ...any) {
+func NewClient(options ...any) *Client {
 	var apiKey ApiKey
 	var userAgent UserAgent
 	var httpClient *http.Client
@@ -34,18 +33,20 @@ func NewClient(options ...any) {
 		}
 	}
 
-	BungieClient = Client{
+	return &Client{
 		ApiKey:      apiKey,
 		UserAgent:   userAgent,
 		Client:      newHttpClient(httpClient),
 		RateLimiter: newRateLimiter(),
 	}
-	BungieClient.Client.Jar = newCookieJar()
 }
 
 func newHttpClient(c *http.Client) *http.Client {
 	if c == nil {
-		return &http.Client{}
+		return &http.Client{
+			Jar:     newCookieJar(),
+			Timeout: 45 * time.Second,
+		}
 	}
 	return c
 }
@@ -72,7 +73,7 @@ func (c *Client) SendWithContext(ctx context.Context, request Request) ([]byte, 
 	}
 
 	// Build the HTTP request object.
-	req, err := buildRequestObject(request)
+	req, err := c.buildRequestObject(request)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +87,7 @@ func (c *Client) SendWithContext(ctx context.Context, request Request) ([]byte, 
 	}
 
 	// Build HttpResponse object.
-	return buildResponse(res)
+	return c.buildResponse(res)
 }
 
 type ApiKey string

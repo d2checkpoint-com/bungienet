@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/bytedance/sonic"
-	"github.com/d2checkpoint-com/bungienet/pkg/client"
+	iClient "github.com/d2checkpoint-com/bungienet/internal/client"
 	"github.com/d2checkpoint-com/bungienet/pkg/client/Destiny2"
 	"github.com/d2checkpoint-com/bungienet/pkg/client/User"
 	"github.com/d2checkpoint-com/bungienet/pkg/model"
@@ -14,24 +14,25 @@ import (
 
 const (
 	bungieUrl  = "https://www.bungie.net/Platform"
-	BreakCache = client.BreakCache
+	BreakCache = iClient.BreakCache
 )
 
-type ApiKey = client.ApiKey
-type UserAgent = client.UserAgent
+type ApiKey = iClient.ApiKey
+type UserAgent = iClient.UserAgent
+
+var client *iClient.Client
 
 type Client struct {
 	*Destiny2.Destiny2
 	*User.User
-	client *client.Client
 }
 
 // NewClient creates a new client with the specified options.
 func NewClient(apiKey string, options ...any) *Client {
 	for _, option := range options {
 		switch option.(type) {
-		case client.ApiKey:
-			apiKey = option.(client.ApiKey).String()
+		case iClient.ApiKey:
+			apiKey = option.(iClient.ApiKey).String()
 		}
 	}
 
@@ -39,9 +40,12 @@ func NewClient(apiKey string, options ...any) *Client {
 		panic("missing api key")
 	}
 
-	client.NewClient(client.ApiKey(apiKey), options)
+	client = iClient.NewClient(iClient.ApiKey(apiKey), options)
 
-	return &Client{Destiny2.NewClient(), User.NewClient(), &client.BungieClient}
+	return &Client{
+		Destiny2: Destiny2.NewClient(client),
+		User:     User.NewClient(client),
+	}
 }
 
 type StreamingAlerts bool
@@ -50,11 +54,11 @@ const IncludeStreaming StreamingAlerts = true
 
 func (c *Client) GetGlobalAlerts(includeStreaming ...any) (*GetGlobalAlertsResponse, error) {
 	var q url.Values
-	var cacheBreak client.CacheBreak
+	var cacheBreak iClient.CacheBreak
 	for _, option := range includeStreaming {
 		switch option.(type) {
-		case client.CacheBreak:
-			cacheBreak = option.(client.CacheBreak)
+		case iClient.CacheBreak:
+			cacheBreak = option.(iClient.CacheBreak)
 		case StreamingAlerts:
 			if q == nil {
 				q = url.Values{}
@@ -63,8 +67,8 @@ func (c *Client) GetGlobalAlerts(includeStreaming ...any) (*GetGlobalAlertsRespo
 		}
 	}
 
-	res, err := c.client.Send(client.Request{
-		Method:      client.Get,
+	res, err := client.Send(iClient.Request{
+		Method:      iClient.Get,
 		BaseURL:     fmt.Sprintf("%s/GlobalAlerts/", bungieUrl),
 		QueryParams: q,
 		CacheBreak:  cacheBreak,
@@ -85,16 +89,16 @@ type GetGlobalAlertsResponse struct {
 }
 
 func (c *Client) GetCommonSettings(options ...any) (*GetCommonSettingsResponse, error) {
-	var cacheBreak client.CacheBreak
+	var cacheBreak iClient.CacheBreak
 	for _, option := range options {
 		switch option.(type) {
-		case client.CacheBreak:
-			cacheBreak = option.(client.CacheBreak)
+		case iClient.CacheBreak:
+			cacheBreak = option.(iClient.CacheBreak)
 		}
 	}
 
-	res, err := c.client.Send(client.Request{
-		Method:     client.Get,
+	res, err := client.Send(iClient.Request{
+		Method:     iClient.Get,
 		BaseURL:    fmt.Sprintf("%s/Settings/", bungieUrl),
 		CacheBreak: cacheBreak,
 	})

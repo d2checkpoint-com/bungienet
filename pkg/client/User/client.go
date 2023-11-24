@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/bytedance/sonic"
-	"github.com/d2checkpoint-com/bungienet/pkg/client"
+	client2 "github.com/d2checkpoint-com/bungienet/internal/client"
 	modelUser "github.com/d2checkpoint-com/bungienet/pkg/model/User"
 )
 
@@ -13,24 +13,24 @@ const (
 )
 
 type User struct {
-	client *client.Client
+	client *client2.Client
 }
 
-func NewClient() *User {
-	return &User{&client.BungieClient}
+func NewClient(c *client2.Client) *User {
+	return &User{c}
 }
 
 func (c *User) GetMembershipDataById(membershipId int64, membershipType int32, options ...any) (*GetMembershipDataByIdResponse, error) {
-	var cacheBreak client.CacheBreak
+	var cacheBreak client2.CacheBreak
 	for _, option := range options {
 		switch option.(type) {
-		case client.CacheBreak:
-			cacheBreak = option.(client.CacheBreak)
+		case client2.CacheBreak:
+			cacheBreak = option.(client2.CacheBreak)
 		}
 	}
 
-	res, err := c.client.Send(client.Request{
-		Method:     client.Get,
+	res, err := c.client.Send(client2.Request{
+		Method:     client2.Get,
 		BaseURL:    fmt.Sprintf("%s/User/GetMembershipsById/%d/%d/", bungieUrl, membershipId, membershipType),
 		CacheBreak: cacheBreak,
 	})

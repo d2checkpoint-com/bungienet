@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/bytedance/sonic"
-	"github.com/d2checkpoint-com/bungienet/pkg/client"
+	client2 "github.com/d2checkpoint-com/bungienet/internal/client"
 	"github.com/d2checkpoint-com/bungienet/pkg/model/Destiny/Config"
 	"github.com/d2checkpoint-com/bungienet/pkg/model/Destiny/Responses"
 	"net/url"
@@ -16,25 +16,25 @@ const (
 )
 
 type Destiny2 struct {
-	client *client.Client
+	client *client2.Client
 }
 
-func NewClient() *Destiny2 {
-	return &Destiny2{&client.BungieClient}
+func NewClient(c *client2.Client) *Destiny2 {
+	return &Destiny2{c}
 }
 
 func (c *Destiny2) GetDestinyManifest(options ...any) (*GetDestinyManifestResponse, error) {
-	var cacheBreak client.CacheBreak
+	var cacheBreak client2.CacheBreak
 	for _, option := range options {
 		switch option.(type) {
-		case client.CacheBreak:
-			cacheBreak = option.(client.CacheBreak)
+		case client2.CacheBreak:
+			cacheBreak = option.(client2.CacheBreak)
 		}
 	}
 
 	// Send and return request
-	res, err := c.client.Send(client.Request{
-		Method:     client.Get,
+	res, err := c.client.Send(client2.Request{
+		Method:     client2.Get,
 		BaseURL:    bungieUrl + "/Destiny2/Manifest/",
 		CacheBreak: cacheBreak,
 	})
@@ -59,7 +59,7 @@ func (c *Destiny2) GetProfile(membershipId int64, membershipType int32, componen
 	}
 
 	var q url.Values
-	var cacheBreak client.CacheBreak
+	var cacheBreak client2.CacheBreak
 	for _, component := range components {
 		switch component.(type) {
 		case DestinyComponentType:
@@ -72,14 +72,14 @@ func (c *Destiny2) GetProfile(membershipId int64, membershipType int32, componen
 				q = url.Values{}
 			}
 			q.Add("components", fmt.Sprintf("%d,", component))
-		case client.CacheBreak:
-			cacheBreak = component.(client.CacheBreak)
+		case client2.CacheBreak:
+			cacheBreak = component.(client2.CacheBreak)
 		}
 	}
 
 	// Send and return request
-	res, err := c.client.Send(client.Request{
-		Method:      client.Get,
+	res, err := c.client.Send(client2.Request{
+		Method:      client2.Get,
 		BaseURL:     fmt.Sprintf("%s/Destiny2/%d/Profile/%d/", bungieUrl, membershipType, membershipId),
 		QueryParams: q,
 		CacheBreak:  cacheBreak,
@@ -106,7 +106,7 @@ func (c *Destiny2) GetCharacter(membershipType int32, membershipId, characterId 
 	}
 
 	var q url.Values
-	var cacheBreak client.CacheBreak
+	var cacheBreak client2.CacheBreak
 	for _, component := range components {
 		switch component.(type) {
 		case DestinyComponentType:
@@ -119,13 +119,13 @@ func (c *Destiny2) GetCharacter(membershipType int32, membershipId, characterId 
 				q = url.Values{}
 			}
 			q.Add("components", fmt.Sprintf("%d,", component))
-		case client.CacheBreak:
-			cacheBreak = component.(client.CacheBreak)
+		case client2.CacheBreak:
+			cacheBreak = component.(client2.CacheBreak)
 		}
 	}
 
-	res, err := c.client.Send(client.Request{
-		Method:      client.Get,
+	res, err := c.client.Send(client2.Request{
+		Method:      client2.Get,
 		BaseURL:     fmt.Sprintf("%s/Destiny2/%d/Profile/%d/Character/%d/", bungieUrl, membershipType, membershipId, characterId),
 		QueryParams: q,
 		CacheBreak:  cacheBreak,

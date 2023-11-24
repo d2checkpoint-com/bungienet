@@ -11,11 +11,6 @@ import (
 	"time"
 )
 
-// makeRequest makes the API call.
-func (c *Client) makeRequest(req *http.Request) (*http.Response, error) {
-	return c.Client.Do(req)
-}
-
 // Request holds the request to an API Call.
 type Request struct {
 	Method      Method
@@ -49,7 +44,7 @@ type IsStatRequest bool
 const StatRequest IsStatRequest = true
 
 // buildRequestObject creates the HTTP request object.
-func buildRequestObject(request Request) (*http.Request, error) {
+func (c *Client) buildRequestObject(request Request) (*http.Request, error) {
 	// Add a CacheBreak query parameter if the request is a stat request.
 	if request.CacheBreak {
 		t := fmt.Sprintf("%d", time.Now().UnixNano())
@@ -70,10 +65,10 @@ func buildRequestObject(request Request) (*http.Request, error) {
 		req.Header.Set(key, value)
 	}
 	if _, exists := req.Header["X-API-Key"]; !exists {
-		req.Header.Set("X-API-Key", BungieClient.ApiKey.String())
+		req.Header.Set("X-API-Key", c.ApiKey.String())
 	}
-	if _, exists := req.Header["User-Agent"]; !exists && BungieClient.UserAgent.String() != "" {
-		req.Header.Set("User-Agent", BungieClient.UserAgent.String())
+	if _, exists := req.Header["User-Agent"]; !exists && c.UserAgent.String() != "" {
+		req.Header.Set("User-Agent", c.UserAgent.String())
 	}
 	if _, exists := req.Header["Content-Type"]; len(request.Body) > 0 && !exists {
 		req.Header.Set("Content-Type", "application/json")
@@ -81,22 +76,22 @@ func buildRequestObject(request Request) (*http.Request, error) {
 	return req, err
 }
 
-// addQueryParameters adds query parameters to the URL.
-func addQueryParameters(baseURL string, params url.Values) string {
-	return baseURL + "?" + params.Encode()
+// makeRequest makes the API call.
+func (c *Client) makeRequest(req *http.Request) (*http.Response, error) {
+	return c.Client.Do(req)
 }
 
 // buildResponse builds the response struct.
-func buildResponse(res *http.Response) ([]byte, error) {
+func (c *Client) buildResponse(res *http.Response) ([]byte, error) {
 	body, err := io.ReadAll(res.Body)
 	err = errors.Join(err, res.Body.Close())
 	if res.StatusCode != 200 {
 		err = errors.Join(err, fmt.Errorf("HttpStatus: %d %s", res.StatusCode, res.Status))
 	}
-	return body, checkResponse(&body, err)
+	return body, c.checkResponse(&body, err)
 }
 
-func checkResponse(b *[]byte, err error) error {
+func (c *Client) checkResponse(b *[]byte, err error) error {
 	type response struct {
 		ErrorCode          int32             `json:"ErrorCode"`
 		ThrottleSeconds    int32             `json:"ThrottleSeconds"`
@@ -129,7 +124,7 @@ func checkResponse(b *[]byte, err error) error {
 		s = fmt.Sprintf("%s DetailedErrorTrace: %s", s, r.DetailedErrorTrace)
 	}
 
-	BungieClient.ThrottleSeconds.Set(r.ThrottleSeconds)
+	c.ThrottleSeconds.Set(r.ThrottleSeconds)
 	if r.ThrottleSeconds != 0 {
 		s = fmt.Sprintf("%s ThrottleSeconds: %d", s, r.ThrottleSeconds)
 	}
@@ -138,4 +133,9 @@ func checkResponse(b *[]byte, err error) error {
 	}
 
 	return err
+}
+
+// addQueryParameters adds query parameters to the URL.
+func addQueryParameters(baseURL string, params url.Values) string {
+	return baseURL + "?" + params.Encode()
 }
